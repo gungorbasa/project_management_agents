@@ -177,19 +177,34 @@ class RAGKnowledgePromptAgent:
         chunks, start, chunk_id = [], 0, 0
 
         while start < len(text):
-            end = min(start + self.chunk_size, len(text))
-            if separator in text[start:end]:
-                end = start + text[start:end].rindex(separator) + len(separator)
+            window = text[start:start + self.chunk_size]
+            end = start + self.chunk_size  # default end
 
-            chunks.append({
+            # Try to find a natural break within the window
+            if separator in window:
+                sep_index = window.rfind(separator)
+                if sep_index > 0:  # only break if separator isn't at the start
+                    end = start + sep_index + len(separator)
+
+            if end <= start:
+                # Safety fallback: force forward movement
+                end = start + self.chunk_size
+
+            chunk = {
                 "chunk_id": chunk_id,
                 "text": text[start:end],
                 "chunk_size": end - start,
                 "start_char": start,
                 "end_char": end
-            })
+            }
+            chunks.append(chunk)
 
-            start = end - self.chunk_overlap
+            # Move start forward with overlap
+            new_start = end - self.chunk_overlap
+            if new_start <= start:
+                new_start = start + 1  # ensure forward movement at all costs
+
+            start = new_start
             chunk_id += 1
 
         with open(f"chunks-{self.unique_filename}", 'w', newline='', encoding='utf-8') as csvfile:
