@@ -1,6 +1,7 @@
 
-# TODO: 1 - Import the KnowledgeAugmentedPromptAgent and RoutingAgent
 import os
+# TODO: 1 - Import the KnowledgeAugmentedPromptAgent and RoutingAgent
+from workflow_agents.base_agents import RoutingAgent
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
