@@ -50,7 +50,7 @@ product_manager_evaluation_criteria = (
     "The answer should be user stories that follow the following structure: \n"
     "As a [type of user], I want [an action or feature] so that [benefit/value]."
 )
-product_manager_evaluation_agent = EvaluationAgent(openai_api_key, persona_product_manager, product_manager_evaluation_criteria, worker_agent=product_manager_knowledge_agent, max_interactions=10)
+
 # Program Manager - Knowledge Augmented Prompt Agent
 persona_program_manager = "You are a Program Manager, you are responsible for defining the features for a product."
 knowledge_program_manager = "Features of a product are defined by organizing similar user stories into cohesive groups."
@@ -59,7 +59,7 @@ knowledge_program_manager = "Features of a product are defined by organizing sim
 program_manager_knowledge_agent = KnowledgeAugmentedPromptAgent(openai_api_key, persona_program_manager, knowledge_program_manager)
 # Program Manager - Evaluation Agent
 persona_program_manager_eval = "You are an evaluation agent that checks the answers of other worker agents."
-
+product_manager_evaluation_agent = EvaluationAgent(openai_api_key, persona_program_manager_eval, product_manager_evaluation_criteria, worker_agent=product_manager_knowledge_agent, max_interactions=10)
 # TODO: 8 - Instantiate a program_manager_evaluation_agent using 'persona_program_manager_eval' and the evaluation criteria below.
 #                      "The answer should be product features that follow the following structure: " \
 #                      "Feature Name: A clear, concise title that identifies the capability\n" \
@@ -119,22 +119,19 @@ routing_agent = RoutingAgent(openai_api_key, agents=[product_manager_knowledge_a
 #   4. Return the final validated response.
 # Support functions for the routing agent
 def product_manager_support_function(query):
-    # 1. Get response from Product Manager Knowledge Agent
     response = product_manager_knowledge_agent.respond(query)
-    # 2. Evaluate response
     validated_response = product_manager_evaluation_agent.evaluate(response)
-    # 3. Return validated response
-    return validated_response
+    return validated_response['final_answer']
 
 def program_manager_support_function(query):
     response = program_manager_knowledge_agent.respond(query)
     validated_response = program_manager_evaluation_agent.evaluate(response)
-    return validated_response
+    return validated_response['final_answer']
 
 def development_engineer_support_function(query):
     response = development_engineer_knowledge_agent.respond(query)
     validated_response = development_engineer_evaluation_agent.evaluate(response)
-    return validated_response
+    return validated_response['final_answer']
 
 # Updated agent routing list with support functions
 agents = [
